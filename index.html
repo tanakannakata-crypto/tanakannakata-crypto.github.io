@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>怖がり方診断</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:#f6f6f6;color:#222;margin:0;padding:24px}
+.app{max-width:620px;margin:auto}.card{background:white;border:1px solid #ddd;border-radius:18px;padding:24px;margin-top:16px}
+button{width:100%;padding:17px;border-radius:12px;border:1px solid #ccc;background:white;font-size:18px;font-weight:600}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}.muted{color:#666;font-size:14px}.bar{height:9px;background:#e8e8e8;border-radius:99px;overflow:hidden}.fill{height:100%;background:#555;transition:.2s}
+.hidden{display:none}.q{font-size:21px;font-weight:700;line-height:1.7;min-height:150px;display:flex;align-items:center}
+.result{line-height:1.9}.score{background:#f5f5f5;padding:14px;border-radius:12px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="app">
+<section id="start">
+<p class="muted">10問・○×形式</p>
+<h1>あなたの「怖がり方」をチェック</h1>
+<p class="muted">普段の自分に近いほうで答えてください。</p>
+<button id="begin">診断を始める</button>
+</section>
+
+<section id="quiz" class="hidden">
+<div style="display:flex;justify-content:space-between">
+<span id="counter"></span><span id="percent" class="muted"></span>
+</div>
+<div class="bar" style="margin:10px 0 18px"><div id="progress" class="fill"></div></div>
+<div class="card q" id="question"></div>
+<div class="answers" style="margin-top:14px">
+<button data-answer="yes">○</button><button data-answer="no">×</button>
+</div>
+</section>
+
+<section id="result" class="hidden">
+<p class="muted">診断結果</p>
+<h1>あなたの怖がり方</h1>
+<div class="card result" id="resultBox"></div>
+<div class="score" id="scoreBox" style="margin-top:14px"></div>
+<p class="muted">※医療的な診断ではなく、回答から怖さの傾向を整理する簡易チェックです。</p>
+<button id="restart">もう一度やる</button>
+</section>
+</div>
+
+<script>
+const questions=[
+'危険なことが起きないか、周囲を警戒することが多い。',
+'よく分からない状況にいると、不安になりやすい。',
+'人が誰もいない場所にいると、特に不安になる。',
+'逃げ道がない・助けを呼べない状況が怖い。',
+'知らない人が近くにいると、危害を加えられないか気になる。',
+'体のちょっとした異変でも、重大なことではないか気になる。',
+'失敗したときのことを考えると、不安になりやすい。',
+'怖いことを想像すると、そこからさらに怖い展開を想像してしまう。',
+'突然の大きな音や急な動きなど、びっくりすることが特に苦手だ。',
+'初めて行く場所より、よく知っている場所のほうが安心する。'
+];
+let i=0,answers=[];
+const $=id=>document.getElementById(id);
+function show(){
+$('question').textContent=questions[i];
+$('counter').textContent=`${i+1} / ${questions.length}`;
+$('percent').textContent=`${Math.round(i/questions.length*100)}%`;
+$('progress').style.width=`${i/questions.length*100}%`;
+}
+function begin(){
+$('start').classList.add('hidden');$('result').classList.add('hidden');
+$('quiz').classList.remove('hidden');i=0;answers=[];show();
+}
+function finish(){
+$('quiz').classList.add('hidden');$('result').classList.remove('hidden');
+$('progress').style.width='100%';
+const has=n=>answers[n-1]===true;
+const y=answers.filter(Boolean).length;
+let p=[];
+if(has(2)&&has(3)&&has(4)&&has(10))
+p.push('あなたは、危険そのものよりも「状況を把握できないこと」や「何かあったときに対処できないこと」に怖さを感じやすい傾向があります。特に、人がいない場所、逃げ道や助けを確保しにくい状況、土地勘のない場所では警戒心が高まりやすそうです。');
+else if(has(2)&&has(8))
+p.push('あなたは、分からない状況に置かれたとき、そこから起こり得ることを想像することで不安が大きくなりやすい傾向がありそうです。状況を把握できると安心しやすいタイプに見えます。');
+else if(has(3)&&has(4))
+p.push('あなたは、人がいないことや、いざというときに助けを求められないことに特に不安を感じやすい傾向がありそうです。「何かあったときに対処できる」という感覚が安心につながりやすそうです。');
+else if(has(1)&&has(7))
+p.push('あなたは、起きていない危険や失敗についても先回りして考え、安全側に備えようとする傾向がありそうです。');
+else
+p.push('今回の回答では、いくつかの場面で不安や警戒が生じやすい傾向が見られます。ただし、怖さの出方には複数の要素が関係していそうです。');
+
+if(has(8))p.push('また、一度怖い可能性を考えると、「もしこうなったら？」とその先まで想像して、怖さが膨らむこともありそうです。');
+if(has(9))p.push('予測できない突然の出来事にも、比較的強く反応しやすそうです。');
+if(has(10))p.push('一方で、よく知っている場所や環境を把握できている状況では、安心感を得やすい可能性があります。');
+if(!has(5)&&!has(6))p.push('一方、今回の回答では「知らない人そのもの」や「身体の異変」への不安は強くないようです。');
+
+$('resultBox').innerHTML=p.map(x=>`<p>${x}</p>`).join('');
+$('scoreBox').innerHTML=`<strong>回答結果：</strong> ○ ${y}個 ／ × ${10-y}個`;
+}
+$('begin').onclick=begin;
+document.querySelectorAll('.answers button').forEach(b=>b.onclick=()=>{
+answers[i]=b.dataset.answer==='yes';
+if(i===9)finish();else{i++;show();}
+});
+$('restart').onclick=begin;
+</script>
+</body>
+</html>
